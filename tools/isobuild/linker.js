@@ -689,16 +689,23 @@ _.extend(File.prototype, {
       // have a source map, just push result.code.
 
       let chunk = result.code;
+      // My setting for server part "main": "server.js"
+      // Hot fix for webpack server.js source map rebuild.
+      // That`s not required to create sourceMap map for server build.
+      // If remove condition bottom, time will be increase up to 50 seconds.
+      if (this.servePath != '/server.js') {
+        // console.log('START', (new Date()).getTime());
+        if (consumer instanceof sourcemap.SourceMapConsumer) {
+          chunk = sourcemap.SourceNode.fromStringWithSourceMap(
+              result.code, consumer);
 
-      if (consumer instanceof sourcemap.SourceMapConsumer) {
-        chunk = sourcemap.SourceNode.fromStringWithSourceMap(
-          result.code, consumer);
-
-      } else if (consumer && result.map) {
-        chunk = sourcemap.SourceNode.fromStringWithSourceMap(
-          result.code,
-          new sourcemap.SourceMapConsumer(result.map),
-        );
+        } else if (consumer && result.map) {
+          chunk = sourcemap.SourceNode.fromStringWithSourceMap(
+              result.code,
+              new sourcemap.SourceMapConsumer(result.map),
+          );
+        }
+        // console.log('STOP', (new Date()).getTime());
       }
 
       chunks.push(chunk);
